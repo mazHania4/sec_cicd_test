@@ -1,23 +1,19 @@
-# FASE INICIAL
-# Este pipeline funciona, despliega rápido, peero... tiene problemas de seguridad graves.
-# NO usar como referencia. Es el "antes" que vamos a ir corrigiendo.
-# Problemas presentes:
-#   1. Se dispara directo en push a main: cualquiera con permiso de push despliega a produccion sin revision
-#   2. `permissions: write-all`: el token del workflow (GITHUB_TOKEN) tiene permisos de escritura totales sobre el repo.
-#       Si el pipeline se ve comprometido, por ejemplo por un atacante, este hereda esos permisos.
-#   3. `actions/checkout@v2`: tag flotante. Puede re-apuntar a un commit distinto en cualquier momento
-#   4. `./mvnw package -DskipTests`: se salta las pruebas a proposito. Nada impide que codigo roto llegue a produccion.
+# FASE 1 - CI Y PRUEBAS AUTOMÁTICAS
+#   - El pipeline ya NO corre directo sobre main. Corre sobre pull_request
+#   - Las pruebas unitarias se ejecutan de forma obligatoria
+# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
+# Configurar en: Settings > Branches > Branch protection rules
 
-name: Deploy (INSEGURO)
+name: Deploy mejorado [CI y pruebas automáticas]
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 permissions: write-all
 
 jobs:
-  build-and-deploy:
+  test-build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
@@ -30,7 +26,7 @@ jobs:
           java-version: '17'
 
       - name: Compilar (sin ejecutar pruebas)
-        run: ./mvnw package -DskipTests
+        run: ./mvnw package
 
       - name: Copiar JAR a EC2
         uses: appleboy/scp-action@master
