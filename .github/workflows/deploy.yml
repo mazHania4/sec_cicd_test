@@ -3,6 +3,8 @@
 #   - Las pruebas unitarias se ejecutan de forma obligatoria
 # IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
 # Configurar en: Settings > Branches > Branch protection rules
+# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
+# Configurar en: Settings > Branches > Branch protection rules
 
 name: Deploy mejorado [CI y pruebas automáticas]
 
