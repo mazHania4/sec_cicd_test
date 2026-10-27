@@ -29,11 +29,11 @@ class TallerApplicationTests {
         assertThat(hash).hasSize(32);
     }
 
-    /*
+
     @Test
     void testQueDebeFallar() {
         // Fuerza un fallo explícito para verificar que el pipeline se detiene
         fail("Fallo intencional para verificar la detención del pipeline CI/CD");
     }
-     */
+
 }
