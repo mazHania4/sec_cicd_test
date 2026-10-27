@@ -35,7 +35,6 @@ jobs:
 
   build-and-deploy:
     name: Empaquetado y despliegue
-    needs: ci-tests
     runs-on: ubuntu-latest
     environment: production # <--- Asocia este job al entorno 'production'
     steps:
