@@ -2,13 +2,11 @@
 # Este pipeline funciona, despliega rápido, peero... tiene problemas de seguridad graves.
 # NO usar como referencia. Es el "antes" que vamos a ir corrigiendo.
 # Problemas presentes:
-#   1. Se dispara directo en push a main: cualquiera con permiso de push despliega a produccion sin revision de nadie (sin PR, sin pruebas).
+#   1. Se dispara directo en push a main: cualquiera con permiso de push despliega a produccion sin revision
 #   2. `permissions: write-all`: el token del workflow (GITHUB_TOKEN) tiene permisos de escritura totales sobre el repo.
 #       Si el pipeline se ve comprometido, por ejemplo por un atacante, este hereda esos permisos.
 #   3. `actions/checkout@v2`: tag flotante. Puede re-apuntar a un commit distinto en cualquier momento
-#      (por el mantenedor de la accion, o en un escenario de supply-chain attack).
 #   4. `./mvnw package -DskipTests`: se salta las pruebas a proposito. Nada impide que codigo roto llegue a produccion.
-# Nota: El "deploy" es solo simulado, aún hay vulnerabilidades que debemos arreglar antes de poder desplegar
 
 name: Deploy (INSEGURO)
 
