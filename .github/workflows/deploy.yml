@@ -1,12 +1,5 @@
-# FASE 1 - CI Y PRUEBAS AUTOMÁTICAS
-#   - El pipeline ya NO corre directo sobre main. Corre sobre pull_request
-#   - Las pruebas unitarias se ejecutan de forma obligatoria
-# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
-# Configurar en: Settings > Branches > Branch protection rules
-# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
-# Configurar en: Settings > Branches > Branch protection rules!!
-
-name: Deploy mejorado [Control de privilegios]
+# FASE 4 - , SAST, SCA
+name: Deploy mejorado [SAST, SCA]
 
 on:
   pull_request:
@@ -33,10 +26,36 @@ jobs:
       - name: Ejecutar pruebas unitarias
         run: ./mvnw test
 
+  sast-semgrep:
+    name: Análisis SAST con Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Escanear código Java con Semgrep
+        run: npx semgrep scan --config p/java --error
+
+  sca-trivy:
+    name: Análisis de dependencias SCA (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Escanear vulnerabilidades en pom.xml con Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          security-checks: 'vuln'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
   build-and-deploy:
     name: Empaquetado y despliegue
     runs-on: ubuntu-latest
-    environment: production # <--- Asocia este job al entorno 'production'
+    needs: [ci-tests, sast-semgrep, sca-trivy]
+    environment: production
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
