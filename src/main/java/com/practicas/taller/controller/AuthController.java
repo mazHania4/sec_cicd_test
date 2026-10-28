@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
 
 /**
  * Vulnerabilidad: USO DE ALGORITMO CRIPTOGRAFICO OBSOLETO
@@ -14,17 +16,22 @@ import java.security.NoSuchAlgorithmException;
 @RestController
 public class AuthController {
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     @GetMapping("/api/auth/hash")
     public String hash(@RequestParam String password) {
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] salt = new byte[16];
+            RANDOM.nextBytes(salt);
+
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt);
             byte[] digest = md.digest(password.getBytes());
 
-            StringBuilder sb = new StringBuilder();
-            for (byte b : digest) {
-                sb.append(String.format("%02x", b));
-            }
-            return "MD5(" + password + ") = " + sb;
+            String saltB64 = Base64.getEncoder().encodeToString(salt);
+            String hashB64 = Base64.getEncoder().encodeToString(digest);
+
+            return "SHA-256(salt + password) -> salt=" + saltB64 + " hash=" + hashB64;
 
         } catch (NoSuchAlgorithmException e) {
             return "Error al calcular el hash: " + e.getMessage();

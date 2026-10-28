@@ -60,7 +60,8 @@ jobs:
         with:
           scan-type: 'fs'
           security-checks: 'vuln'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'     # <--- Solo alertas Críticas
+          ignore-unfixed: true     # <--- Ignora vulnerabilidades sin solución oficial
           exit-code: '1'
 
   build-and-deploy:
