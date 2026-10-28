@@ -1,12 +1,5 @@
-# FASE 1 - CI Y PRUEBAS AUTOMÁTICAS
-#   - El pipeline ya NO corre directo sobre main. Corre sobre pull_request
-#   - Las pruebas unitarias se ejecutan de forma obligatoria
-# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
-# Configurar en: Settings > Branches > Branch protection rules
-# IMPORTANTE: Un workflow que falla no bloquea un merge a menos que se configure Branch Protection en GitHub.
-# Configurar en: Settings > Branches > Branch protection rules!!
-
-name: Deploy mejorado [Control de privilegios]
+# FASE 4 - , SAST, SCA
+name: Deploy mejorado [SAST, SCA]
 
 on:
   pull_request:
@@ -33,10 +26,49 @@ jobs:
       - name: Ejecutar pruebas unitarias
         run: ./mvnw test
 
+  sast-semgrep:
+    name: Análisis SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar y ejecutar Semgrep
+        run: |
+          python3 -m pip install semgrep
+          semgrep scan --config p/java --error
+
+  sca-trivy:
+    name: Análisis SCA (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Descargar dependencias de Maven
+        run: ./mvnw dependency:resolve
+
+      - name: Escanear vulnerabilidades con Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          security-checks: 'vuln'
+          severity: 'CRITICAL'     # <--- Solo alertas Críticas
+          ignore-unfixed: true     # <--- Ignora vulnerabilidades sin solución oficial
+          exit-code: '1'
+
   build-and-deploy:
     name: Empaquetado y despliegue
     runs-on: ubuntu-latest
-    environment: production # <--- Asocia este job al entorno 'production'
+    needs: [ci-tests, sast-semgrep, sca-trivy]
+    environment: production
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4

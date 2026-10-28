@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Vulnerabilidad: PATH TRAVERSAL
@@ -16,22 +18,29 @@ import java.nio.file.Files;
 @RestController
 public class FileController {
 
-    private static final String BASE_DIR = "/tmp/";
+    private static final Path BASE_DIR = Paths.get("/tmp/").toAbsolutePath().normalize();
 
     @GetMapping("/api/files/download")
     public String download(@RequestParam String fileName) {
         try {
-            File file = new File(BASE_DIR + fileName);
+            // 1. Resolver y normalizar la ruta solicitada contra el directorio base.
+            Path requested = BASE_DIR.resolve(fileName).normalize();
 
-            if (!file.exists()) {
-                return "Archivo no encontrado: " + file.getAbsolutePath();
+            // 2. Verificar que la ruta normalizada siga dentro del directorio base.
+            if (!requested.startsWith(BASE_DIR)) {
+                return "Acceso denegado: ruta fuera del directorio permitido.";
             }
 
-            byte[] contenido = Files.readAllBytes(file.toPath());
+            if (!Files.exists(requested) || !Files.isRegularFile(requested)) {
+                return "Archivo no encontrado.";
+            }
+
+            byte[] contenido = Files.readAllBytes(requested);
             return new String(contenido);
 
         } catch (IOException e) {
-            return "Error al leer el archivo: " + e.getMessage();
+            // No se expone el detalle interno de la excepcion al cliente.
+            return "No fue posible leer el archivo solicitado.";
         }
     }
 }
