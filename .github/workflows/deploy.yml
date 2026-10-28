@@ -26,17 +26,17 @@ jobs:
       - name: Ejecutar pruebas unitarias
         run: ./mvnw test
 
-sast-semgrep:
-  name: Análisis SAST (Semgrep)
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout del código
-      uses: actions/checkout@v4
+  sast-semgrep:
+    name: Análisis SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
 
-    - name: Instalar y ejecutar Semgrep
-      run: |
-        python3 -m pip install semgrep
-        semgrep scan --config p/java --error
+      - name: Instalar y ejecutar Semgrep
+        run: |
+          python3 -m pip install semgrep
+          semgrep scan --config p/java --error
 
   sca-trivy:
     name: Análisis SCA (Trivy)
